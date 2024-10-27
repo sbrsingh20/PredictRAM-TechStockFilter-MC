@@ -20,15 +20,14 @@ def load_all_stock_data(data_folder):
 # Function to read market cap data from Excel file
 def load_market_cap_data(file_path):
     market_cap_data = pd.read_excel(file_path)
-    market_cap_dict = market_cap_data.set_index("symbol")["marketCap"].to_dict()
-    return market_cap_dict
+    return market_cap_data.set_index("symbol")["marketCap"].to_dict()
 
 # Function to filter stocks based on market cap
 def filter_by_market_cap(stock_data, market_cap_range):
     filtered_data = {}
     for symbol, data in stock_data.items():
-        market_cap = market_cap_dict.get(symbol, None)
-        if market_cap is not None and market_cap_range[0] <= market_cap <= market_cap_range[1]:
+        market_cap = market_cap_dict.get(symbol, 0)
+        if market_cap_range[0] <= market_cap <= market_cap_range[1]:
             filtered_data[symbol] = data
     return filtered_data
 
@@ -179,7 +178,6 @@ else:
         for stock in stocks:
             symbol, bearish_count, total_bearish, market_cap, indicators = stock
             
-            # Extract individual indicator values, indications
             rsi_value = indicators.get("rsi", {}).get("value", "")
             rsi_indication = indicators.get("rsi", {}).get("indication", "")
             macd_value = indicators.get("macd", {}).get("value", "")
