@@ -1,0 +1,240 @@
+{
+    "code": "200",
+    "message": "Success",
+    "data": {
+        "open": 1243.8,
+        "high": 1463,
+        "low": 1122.35,
+        "close": 1411.05,
+        "pclose": 1231.5,
+        "volume": 584379,
+        "reqDate": "2024-43",
+        "feedTime": "1729872000",
+        "scId": "CAR",
+        "exchangeId": "N",
+        "pivotLevels": [
+            {
+                "key": "Classic",
+                "pivotLevel": {
+                    "pivotPoint": "1236.67",
+                    "r1": "1274.33",
+                    "r2": "1317.17",
+                    "r3": "1354.83",
+                    "s1": "1193.83",
+                    "s2": "1156.17",
+                    "s3": "1113.33"
+                }
+            },
+            {
+                "key": "Fibonacci",
+                "pivotLevel": {
+                    "pivotPoint": "1236.67",
+                    "r1": "1267.42",
+                    "r2": "1286.42",
+                    "r3": "1317.17",
+                    "s1": "1205.92",
+                    "s2": "1186.92",
+                    "s3": "1156.17"
+                }
+            },
+            {
+                "key": "Camarilla",
+                "pivotLevel": {
+                    "pivotPoint": "1236.67",
+                    "r1": "1238.88",
+                    "r2": "1246.26",
+                    "r3": "1253.64",
+                    "s1": "1224.12",
+                    "s2": "1216.74",
+                    "s3": "1209.36"
+                }
+            }
+        ],
+        "sma": [
+            {
+                "key": "5",
+                "value": "1198.05",
+                "indication": "Bullish"
+            },
+            {
+                "key": "10",
+                "value": "1096.24",
+                "indication": "Bullish"
+            },
+            {
+                "key": "20",
+                "value": "1067.94",
+                "indication": "Bullish"
+            },
+            {
+                "key": "50",
+                "value": "1060.39",
+                "indication": "Bullish"
+            },
+            {
+                "key": "100",
+                "value": "885.13",
+                "indication": "Bullish"
+            },
+            {
+                "key": "200",
+                "value": "719.44",
+                "indication": "Bullish"
+            }
+        ],
+        "ema": [
+            {
+                "key": "5",
+                "value": "1233.45",
+                "indication": "Bullish"
+            },
+            {
+                "key": "10",
+                "value": "1151.09",
+                "indication": "Bullish"
+            },
+            {
+                "key": "20",
+                "value": "1100.71",
+                "indication": "Bullish"
+            },
+            {
+                "key": "50",
+                "value": "1031.25",
+                "indication": "Bullish"
+            },
+            {
+                "key": "100",
+                "value": "921.41",
+                "indication": "Bullish"
+            },
+            {
+                "key": "200",
+                "value": "825.86",
+                "indication": "Bullish"
+            }
+        ],
+        "crossover": [
+            {
+                "key": "5_20",
+                "displayValue": "5 & 20 DMA Crossover",
+                "indication": "Bullish",
+                "period": "Short Term"
+            },
+            {
+                "key": "20_50",
+                "displayValue": "20 & 50 DMA Crossover",
+                "indication": "Bullish",
+                "period": "Medium Term"
+            },
+            {
+                "key": "50_200",
+                "displayValue": "50 & 200 DMA Crossover",
+                "indication": "Bullish",
+                "period": "Long Term"
+            }
+        ],
+        "indicators": [
+            {
+                "id": "rsi",
+                "displayName": "RSI(14)",
+                "value": "76.96",
+                "indication": "Overbought"
+            },
+            {
+                "id": "macd",
+                "displayName": "MACD(12,26,9)",
+                "value": "48.00",
+                "indication": "Bullish"
+            },
+            {
+                "id": "stochastic",
+                "displayName": "Stochastic(20,3)",
+                "value": "90.40",
+                "indication": "Overbought"
+            },
+            {
+                "id": "roc",
+                "displayName": "ROC(20)",
+                "value": "36.20",
+                "indication": "Bullish"
+            },
+            {
+                "id": "cci",
+                "displayName": "CCI(20)",
+                "value": "258.29",
+                "indication": "Overbought"
+            },
+            {
+                "id": "williamsR",
+                "displayName": "Williamson%R(14)",
+                "value": "-9.60",
+                "indication": "Overbought"
+            },
+            {
+                "id": "mfi",
+                "displayName": "MFI(14)",
+                "value": "85.73",
+                "indication": "Overbought"
+            },
+            {
+                "id": "atr",
+                "displayName": "ATR(14)",
+                "value": "97.63",
+                "indication": "High Volatility"
+            },
+            {
+                "id": "adx",
+                "displayName": "ADX(14)",
+                "value": "23.38",
+                "indication": "Weak Trend"
+            },
+            {
+                "id": "bollinger",
+                "displayName": "Bollinger Band(20,2)",
+                "value": [
+                    {
+                        "id": "upperband",
+                        "displayName": "UB",
+                        "value": "1285.35"
+                    },
+                    {
+                        "id": "lowerband",
+                        "displayName": "LB",
+                        "value": "850.54"
+                    },
+                    {
+                        "id": "sma20",
+                        "displayName": "SMA20",
+                        "value": "1067.94"
+                    }
+                ],
+                "indication": "- -"
+            }
+        ],
+        "sentiments": {
+            "movingAverageSentiment": {
+                "bearishCount": 0,
+                "bullishCount": 6,
+                "neutralCount": 0,
+                "indication": "Bullish"
+            },
+            "movingAverageCrossOverSentiment": {
+                "bearishCount": 0,
+                "bullishCount": 3,
+                "neutralCount": 0,
+                "indication": "Bullish"
+            },
+            "indicatorsSentiment": {
+                "bearishCount": 0,
+                "bullishCount": 2,
+                "neutralCount": 0,
+                "indication": "Bullish"
+            },
+            "totalBearish": 0,
+            "totalBullish": 11,
+            "totalNeutral": 0,
+            "indication": "Very Bullish"
+        }
+    }
+}
