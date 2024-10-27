@@ -15,64 +15,37 @@ def load_all_stock_data(symbols):
             continue  # Skip if file is not found
     return stock_data
 
-# Function to analyze stock data and filter based on criteria
-def analyze_and_filter_stocks(stock_data):
-    filtered_results = {
-        "Short Term": [],
-        "Medium Term": [],
-        "Long Term": []
-    }
-
+# Function to filter stocks based on criteria
+def filter_stocks(stock_data, term):
+    filtered_stocks = []
+    
     for symbol, data in stock_data.items():
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
-        
-        # Prepare pivot levels DataFrame with error handling for numeric conversion
-        pivot_levels_df = pd.DataFrame(
-            [(level["key"], 
-              pd.to_numeric(level["pivotLevel"].get("pivotPoint"), errors='coerce'),
-              pd.to_numeric(level["pivotLevel"].get("r1"), errors='coerce'), 
-              pd.to_numeric(level["pivotLevel"].get("s1"), errors='coerce'))
-             for level in pivot_levels],
-            columns=["Key", "Pivot Point", "R1", "S1"]
-        )
 
-        # Drop rows with NaN values to ensure all data is numeric
-        pivot_levels_df = pivot_levels_df.dropna()
+        for level in pivot_levels:
+            key = level["key"]
+            stoploss = float(level["pivotLevel"]["s1"])
+            target = float(level["pivotLevel"]["r1"])
 
-        if not pivot_levels_df.empty:
-            # Calculate averages for Pivot Levels
-            averages = pivot_levels_df.mean().to_frame().T
-            averages["Symbol"] = symbol
+            # Calculate stop loss and target changes
+            stop_loss_change = (close_price - stoploss) / close_price * 100
+            target_change = (target - close_price) / close_price * 100
 
-            # Analyze stop loss and target
-            for level in pivot_levels:
-                stoploss = pd.to_numeric(level["pivotLevel"].get("s1"), errors='coerce')
-                target = pd.to_numeric(level["pivotLevel"].get("r1"), errors='coerce')
-
-                # Ensure stoploss and target are valid numbers
-                if pd.isna(stoploss) or pd.isna(target):
-                    continue
-
-                # Calculate stop loss and target changes
-                stop_loss_change = (close_price - stoploss) / close_price * 100
-                target_change = (target - close_price) / close_price * 100
-
-                # Filtering based on term
+            if term == "Short Term":
                 if stop_loss_change >= -3 and target_change >= 5:
-                    filtered_results["Short Term"].append((symbol, close_price, stoploss, target, averages))
+                    filtered_stocks.append((symbol, close_price, stoploss, target))
 
+            elif term == "Medium Term":
                 if stop_loss_change >= -4 and target_change >= 10:
-                    filtered_results["Medium Term"].append((symbol, close_price, stoploss, target, averages))
+                    filtered_stocks.append((symbol, close_price, stoploss, target))
 
+            elif term == "Long Term":
                 if stop_loss_change >= -5 and target_change >= 15:
-                    filtered_results["Long Term"].append((symbol, close_price, stoploss, target, averages))
+                    filtered_stocks.append((symbol, close_price, stoploss, target))
 
-    # Sort and return top 20 stocks for each term
-    for term in filtered_results:
-        filtered_results[term] = sorted(filtered_results[term], key=lambda x: x[1], reverse=True)[:20]
-
-    return filtered_results
+    # Sort and return top 20 stocks for the term
+    return sorted(filtered_stocks, key=lambda x: x[1], reverse=True)[:20]
 
 # Input for stock symbols to search
 stock_symbols_input = st.text_input("Enter stock symbols separated by commas (e.g., ABB, GOOGL):")
@@ -80,55 +53,29 @@ stock_symbols = [s.strip() for s in stock_symbols_input.split(',')] if stock_sym
 
 if stock_symbols:
     stock_data = load_all_stock_data(stock_symbols)
-    
-    # Analyze and filter stocks
-    filtered_stocks = analyze_and_filter_stocks(stock_data)
+
+    # Filter stocks for each term
+    short_term_stocks = filter_stocks(stock_data, "Short Term")
+    medium_term_stocks = filter_stocks(stock_data, "Medium Term")
+    long_term_stocks = filter_stocks(stock_data, "Long Term")
 
     # Display results
-    st.title("Filtered Stocks Analysis")
+    st.title("Filtered Stocks")
 
-    for term in ["Short Term", "Medium Term", "Long Term"]:
-        st.subheader(f"{term} Stocks")
-        if filtered_stocks[term]:
-            results_df = pd.DataFrame(filtered_stocks[term], columns=["Symbol", "Close Price", "Stoploss", "Target", "Averages"])
-            st.table(results_df[["Symbol", "Close Price", "Stoploss", "Target"]])  # Display top stocks
+    st.subheader("Short Term Stocks")
+    if short_term_stocks:
+        st.table(pd.DataFrame(short_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
+    else:
+        st.write("No stocks meet the criteria for Short Term.")
 
-            # Display Pivot Levels and Averages for each stock
-            for idx, row in results_df.iterrows():
-                symbol = row["Symbol"]
-                averages = row["Averages"]
+    st.subheader("Medium Term Stocks")
+    if medium_term_stocks:
+        st.table(pd.DataFrame(medium_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
+    else:
+        st.write("No stocks meet the criteria for Medium Term.")
 
-                st.write(f"**Pivot Levels and Averages for {symbol}**")
-                st.table(averages)
-
-                # Display SMA and EMA data
-                sma_df = pd.DataFrame(stock_data[symbol]["data"]["sma"])
-                ema_df = pd.DataFrame(stock_data[symbol]["data"]["ema"])
-                
-                st.write("**Simple Moving Averages (SMA)**")
-                st.table(sma_df)
-
-                st.write("**Exponential Moving Averages (EMA)**")
-                st.table(ema_df)
-
-                # Display Moving Average Crossovers
-                crossover_df = pd.DataFrame(stock_data[symbol]["data"]["crossover"])
-                st.write("**Moving Average Crossovers**")
-                st.table(crossover_df)
-
-                # Display Technical Indicators
-                indicators_df = pd.DataFrame(stock_data[symbol]["data"]["indicators"])
-                st.write("**Technical Indicators**")
-                st.table(indicators_df)
-
-                # Stoploss and Target table for each stock
-                stoploss_target_df = pd.DataFrame({
-                    "Key": [row["Symbol"]],
-                    "Stoploss": [row["Stoploss"]],
-                    "Target": [row["Target"]]
-                })
-                st.write(f"**Stoploss and Target for {symbol}**")
-                st.table(stoploss_target_df)
-
-        else:
-            st.write(f"No stocks meet the criteria for {term}.")
+    st.subheader("Long Term Stocks")
+    if long_term_stocks:
+        st.table(pd.DataFrame(long_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
+    else:
+        st.write("No stocks meet the criteria for Long Term.")
