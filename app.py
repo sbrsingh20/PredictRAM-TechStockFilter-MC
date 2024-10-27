@@ -24,6 +24,7 @@ def filter_stocks(stock_data, term):
     for symbol, data in stock_data.items():
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
+        technical_indicators = data["data"].get("technicalIndicators", {})  # Get technical indicators
 
         # Calculate stop loss and target prices from the pivot levels
         for level in pivot_levels:
@@ -38,7 +39,7 @@ def filter_stocks(stock_data, term):
             if (term == "Short Term" and stop_loss_change >= -3 and target_change >= 5) or \
                (term == "Medium Term" and stop_loss_change >= -4 and target_change >= 10) or \
                (term == "Long Term" and stop_loss_change >= -5 and target_change >= 15):
-                filtered_stocks.append((symbol, close_price, stoploss, target))
+                filtered_stocks.append((symbol, close_price, stoploss, target, technical_indicators))
 
     return sorted(filtered_stocks, key=lambda x: x[1], reverse=True)[:20]  # Top 20 stocks
 
@@ -54,20 +55,26 @@ long_term_stocks = filter_stocks(stock_data, "Long Term")
 # Display results
 st.title("Top Filtered Stocks Based on Technicals")
 
+def display_stocks(stocks, term):
+    if stocks:
+        # Create a DataFrame for stocks
+        data = []
+        for stock in stocks:
+            symbol, close_price, stoploss, target, indicators = stock
+            # You can adjust the indicators extraction based on your data structure
+            indicators_str = json.dumps(indicators, indent=2)  # Convert indicators to a string for display
+            data.append((symbol, close_price, stoploss, target, indicators_str))
+        
+        df = pd.DataFrame(data, columns=["Symbol", "Close Price", "Stoploss", "Target", "Technical Indicators"])
+        st.table(df)
+    else:
+        st.write(f"No stocks meet the criteria for {term}.")
+
 st.subheader("Short Term Stocks")
-if short_term_stocks:
-    st.table(pd.DataFrame(short_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
-else:
-    st.write("No stocks meet the criteria for Short Term.")
+display_stocks(short_term_stocks, "Short Term")
 
 st.subheader("Medium Term Stocks")
-if medium_term_stocks:
-    st.table(pd.DataFrame(medium_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
-else:
-    st.write("No stocks meet the criteria for Medium Term.")
+display_stocks(medium_term_stocks, "Medium Term")
 
 st.subheader("Long Term Stocks")
-if long_term_stocks:
-    st.table(pd.DataFrame(long_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
-else:
-    st.write("No stocks meet the criteria for Long Term.")
+display_stocks(long_term_stocks, "Long Term")
