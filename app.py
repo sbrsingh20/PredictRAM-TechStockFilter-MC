@@ -220,13 +220,13 @@ def display_bearish_stocks(bearish_stocks, term):
 st.title("Top Filtered Stocks Based on Technicals")
 
 # Display filtered stocks
-st.subheader("Short Term Stocks")
+st.subheader("Short Term Bullish Stocks")
 display_stocks(short_term_stocks, "Short Term")
 
-st.subheader("Medium Term Stocks")
+st.subheader("Medium Term Bullish Stocks")
 display_stocks(medium_term_stocks, "Medium Term")
 
-st.subheader("Long Term Stocks")
+st.subheader("Long Term Bullish Stocks")
 display_stocks(long_term_stocks, "Long Term")
 
 # Display bearish stocks
