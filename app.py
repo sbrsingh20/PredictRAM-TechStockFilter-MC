@@ -17,6 +17,20 @@ def load_all_stock_data(data_folder):
                 st.error(f"Error loading {filename}: {e}")
     return stock_data
 
+# Function to read market cap data from Excel file
+def load_market_cap_data(file_path):
+    market_cap_data = pd.read_excel(file_path)
+    return market_cap_data.set_index("symbol")["marketCap"].to_dict()
+
+# Function to filter stocks based on market cap
+def filter_by_market_cap(stock_data, market_cap_range):
+    filtered_data = {}
+    for symbol, data in stock_data.items():
+        market_cap = market_cap_dict.get(symbol, 0)
+        if market_cap_range[0] <= market_cap <= market_cap_range[1]:
+            filtered_data[symbol] = data
+    return filtered_data
+
 # Function to filter stocks based on criteria
 def filter_stocks(stock_data, term):
     filtered_stocks = []
@@ -65,15 +79,32 @@ def filter_bearish_stocks(stock_data, term):
 data_folder = "data"  # Adjust this path if needed
 stock_data = load_all_stock_data(data_folder)
 
-# Filter stocks for each term
-short_term_stocks = filter_stocks(stock_data, "Short Term")
-medium_term_stocks = filter_stocks(stock_data, "Medium Term")
-long_term_stocks = filter_stocks(stock_data, "Long Term")
+# Load market cap data from Excel file
+market_cap_file = "SymbolWithMarketCap.xlsx"  # Adjust this path if needed
+market_cap_dict = load_market_cap_data(market_cap_file)
 
-# Filter bearish stocks for each term
-short_term_bearish = filter_bearish_stocks(stock_data, "Short Term")
-medium_term_bearish = filter_bearish_stocks(stock_data, "Medium Term")
-long_term_bearish = filter_bearish_stocks(stock_data, "Long Term")
+# Slider for market cap selection
+min_market_cap = min(market_cap_dict.values())
+max_market_cap = max(market_cap_dict.values())
+market_cap_range = st.slider(
+    "Select Market Cap Range",
+    min_value=min_market_cap,
+    max_value=max_market_cap,
+    value=(min_market_cap, max_market_cap)
+)
+
+# Filter stock data by selected market cap range
+filtered_stock_data = filter_by_market_cap(stock_data, market_cap_range)
+
+# Filter stocks for each term based on the filtered stock data
+short_term_stocks = filter_stocks(filtered_stock_data, "Short Term")
+medium_term_stocks = filter_stocks(filtered_stock_data, "Medium Term")
+long_term_stocks = filter_stocks(filtered_stock_data, "Long Term")
+
+# Filter bearish stocks for each term based on the filtered stock data
+short_term_bearish = filter_bearish_stocks(filtered_stock_data, "Short Term")
+medium_term_bearish = filter_bearish_stocks(filtered_stock_data, "Medium Term")
+long_term_bearish = filter_bearish_stocks(filtered_stock_data, "Long Term")
 
 # Function to create DataFrame for stock indicators
 def create_stock_dataframe(stocks):
@@ -81,7 +112,7 @@ def create_stock_dataframe(stocks):
     for stock in stocks:
         symbol, close_price, stoploss, target, indicators = stock
         
-        # Extract individual indicator values, indications, and periods
+        # Extract individual indicator values, indications
         rsi_value = indicators.get("rsi", {}).get("value", "")
         rsi_indication = indicators.get("rsi", {}).get("indication", "")
         macd_value = indicators.get("macd", {}).get("value", "")
@@ -220,13 +251,13 @@ def display_bearish_stocks(bearish_stocks, term):
 st.title("Top Filtered Stocks Based on Technicals")
 
 # Display filtered stocks
-st.subheader("Bullish Short Term Stocks")
+st.subheader("Short Term Stocks")
 display_stocks(short_term_stocks, "Short Term")
 
-st.subheader("Bullish Medium Term Stocks")
+st.subheader("Medium Term Stocks")
 display_stocks(medium_term_stocks, "Medium Term")
 
-st.subheader("Bullish Long Term Stocks")
+st.subheader("Long Term Stocks")
 display_stocks(long_term_stocks, "Long Term")
 
 # Display bearish stocks
