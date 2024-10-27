@@ -3,16 +3,18 @@ import pandas as pd
 import json
 import os
 
-# Function to load JSON data for multiple symbols
-def load_all_stock_data(symbols):
+# Function to load JSON data for all stocks in the data folder
+def load_all_stock_data(data_folder):
     stock_data = {}
-    for symbol in symbols:
-        try:
-            file_path = f"data/{symbol}_data.json"
-            with open(file_path, "r") as file:
-                stock_data[symbol] = json.load(file)
-        except FileNotFoundError:
-            continue  # Skip if file is not found
+    for filename in os.listdir(data_folder):
+        if filename.endswith("_data.json"):
+            symbol = filename.split("_")[0]  # Extract stock symbol from filename
+            file_path = os.path.join(data_folder, filename)
+            try:
+                with open(file_path, "r") as file:
+                    stock_data[symbol] = json.load(file)
+            except Exception as e:
+                st.error(f"Error loading {filename}: {e}")
     return stock_data
 
 # Function to filter stocks based on criteria
@@ -23,6 +25,7 @@ def filter_stocks(stock_data, term):
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
 
+        # Calculate stop loss and target prices from the pivot levels
         for level in pivot_levels:
             stoploss = float(level["pivotLevel"]["s1"])
             target = float(level["pivotLevel"]["r1"])
@@ -39,35 +42,32 @@ def filter_stocks(stock_data, term):
 
     return sorted(filtered_stocks, key=lambda x: x[1], reverse=True)[:20]  # Top 20 stocks
 
-# Input for stock symbols to search
-stock_symbols_input = st.text_input("Enter stock symbols separated by commas (e.g., ABB, GOOGL):")
-stock_symbols = [s.strip() for s in stock_symbols_input.split(',')] if stock_symbols_input else []
+# Load stock data from the specified folder
+data_folder = "data"  # Adjust this path if needed
+stock_data = load_all_stock_data(data_folder)
 
-if stock_symbols:
-    stock_data = load_all_stock_data(stock_symbols)
+# Filter stocks for each term
+short_term_stocks = filter_stocks(stock_data, "Short Term")
+medium_term_stocks = filter_stocks(stock_data, "Medium Term")
+long_term_stocks = filter_stocks(stock_data, "Long Term")
 
-    # Filter stocks for each term
-    short_term_stocks = filter_stocks(stock_data, "Short Term")
-    medium_term_stocks = filter_stocks(stock_data, "Medium Term")
-    long_term_stocks = filter_stocks(stock_data, "Long Term")
+# Display results
+st.title("Top Filtered Stocks Based on Technicals")
 
-    # Display results
-    st.title("Filtered Stocks")
+st.subheader("Short Term Stocks")
+if short_term_stocks:
+    st.table(pd.DataFrame(short_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
+else:
+    st.write("No stocks meet the criteria for Short Term.")
 
-    st.subheader("Short Term Stocks")
-    if short_term_stocks:
-        st.table(pd.DataFrame(short_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
-    else:
-        st.write("No stocks meet the criteria for Short Term.")
+st.subheader("Medium Term Stocks")
+if medium_term_stocks:
+    st.table(pd.DataFrame(medium_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
+else:
+    st.write("No stocks meet the criteria for Medium Term.")
 
-    st.subheader("Medium Term Stocks")
-    if medium_term_stocks:
-        st.table(pd.DataFrame(medium_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
-    else:
-        st.write("No stocks meet the criteria for Medium Term.")
-
-    st.subheader("Long Term Stocks")
-    if long_term_stocks:
-        st.table(pd.DataFrame(long_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
-    else:
-        st.write("No stocks meet the criteria for Long Term.")
+st.subheader("Long Term Stocks")
+if long_term_stocks:
+    st.table(pd.DataFrame(long_term_stocks, columns=["Symbol", "Close Price", "Stoploss", "Target"]))
+else:
+    st.write("No stocks meet the criteria for Long Term.")
