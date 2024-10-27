@@ -27,12 +27,12 @@ def analyze_and_filter_stocks(stock_data):
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
         
-        # Prepare pivot levels DataFrame
+        # Prepare pivot levels DataFrame with error handling for numeric conversion
         pivot_levels_df = pd.DataFrame(
             [(level["key"], 
-              pd.to_numeric(level["pivotLevel"]["pivotPoint"], errors='coerce'),
-              pd.to_numeric(level["pivotLevel"]["r1"], errors='coerce'), 
-              pd.to_numeric(level["pivotLevel"]["s1"], errors='coerce'))
+              pd.to_numeric(level["pivotLevel"].get("pivotPoint"), errors='coerce'),
+              pd.to_numeric(level["pivotLevel"].get("r1"), errors='coerce'), 
+              pd.to_numeric(level["pivotLevel"].get("s1"), errors='coerce'))
              for level in pivot_levels],
             columns=["Key", "Pivot Point", "R1", "S1"]
         )
@@ -47,9 +47,8 @@ def analyze_and_filter_stocks(stock_data):
 
             # Analyze stop loss and target
             for level in pivot_levels:
-                key = level["key"]
-                stoploss = pd.to_numeric(level["pivotLevel"]["s1"], errors='coerce')
-                target = pd.to_numeric(level["pivotLevel"]["r1"], errors='coerce')
+                stoploss = pd.to_numeric(level["pivotLevel"].get("s1"), errors='coerce')
+                target = pd.to_numeric(level["pivotLevel"].get("r1"), errors='coerce')
 
                 # Ensure stoploss and target are valid numbers
                 if pd.isna(stoploss) or pd.isna(target):
