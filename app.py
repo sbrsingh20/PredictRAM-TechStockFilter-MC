@@ -20,14 +20,13 @@ def filter_stocks(stock_data, term):
     filtered_stocks = []
     
     for symbol, data in stock_data.items():
-        symbol_info = data["data"]
-        pivot_levels = symbol_info["pivotLevels"]
+        close_price = data["data"]["close"]  # Get the closing price
+        pivot_levels = data["data"]["pivotLevels"]
 
         for level in pivot_levels:
             key = level["key"]
-            stoploss = level["pivotLevel"]["s1"]
-            target = level["pivotLevel"]["r1"]
-            close_price = level["pivotLevel"]["closePrice"]  # Assuming you have close price in JSON
+            stoploss = float(level["pivotLevel"]["s1"])
+            target = float(level["pivotLevel"]["r1"])
 
             # Calculate stop loss and target changes
             stop_loss_change = (close_price - stoploss) / close_price * 100
@@ -49,7 +48,7 @@ def filter_stocks(stock_data, term):
     return sorted(filtered_stocks, key=lambda x: x[1], reverse=True)[:20]
 
 # Input for stock symbols to search
-stock_symbols_input = st.text_input("Enter stock symbols separated by commas (e.g., AAPL, GOOGL):")
+stock_symbols_input = st.text_input("Enter stock symbols separated by commas (e.g., ABB, GOOGL):")
 stock_symbols = [s.strip() for s in stock_symbols_input.split(',')] if stock_symbols_input else []
 
 if stock_symbols:
