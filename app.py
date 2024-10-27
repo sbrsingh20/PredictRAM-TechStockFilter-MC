@@ -58,26 +58,58 @@ def create_stock_dataframe(stocks):
     for stock in stocks:
         symbol, close_price, stoploss, target, indicators = stock
         
-        # Extract individual indicator values
-        rsi = indicators.get("rsi", {}).get("value", "")
-        macd = indicators.get("macd", {}).get("value", "")
-        stochastic = indicators.get("stochastic", {}).get("value", "")
-        roc = indicators.get("roc", {}).get("value", "")
-        cci = indicators.get("cci", {}).get("value", "")
-        williams_r = indicators.get("williamsR", {}).get("value", "")
-        mfi = indicators.get("mfi", {}).get("value", "")
-        atr = indicators.get("atr", {}).get("value", "")
-        adx = indicators.get("adx", {}).get("value", "")
-        ub = indicators.get("bollinger", {}).get("value", [{}])[0].get("value", "")
-        lb = indicators.get("bollinger", {}).get("value", [{}])[1].get("value", "")
-        sma20 = indicators.get("bollinger", {}).get("value", [{}])[2].get("value", "")
+        # Extract individual indicator values, indications, and periods
+        rsi_value = indicators.get("rsi", {}).get("value", "")
+        rsi_indication = indicators.get("rsi", {}).get("indication", "")
+        macd_value = indicators.get("macd", {}).get("value", "")
+        macd_indication = indicators.get("macd", {}).get("indication", "")
+        stochastic_value = indicators.get("stochastic", {}).get("value", "")
+        stochastic_indication = indicators.get("stochastic", {}).get("indication", "")
+        roc_value = indicators.get("roc", {}).get("value", "")
+        roc_indication = indicators.get("roc", {}).get("indication", "")
+        cci_value = indicators.get("cci", {}).get("value", "")
+        cci_indication = indicators.get("cci", {}).get("indication", "")
+        williams_r_value = indicators.get("williamsR", {}).get("value", "")
+        williams_r_indication = indicators.get("williamsR", {}).get("indication", "")
+        mfi_value = indicators.get("mfi", {}).get("value", "")
+        mfi_indication = indicators.get("mfi", {}).get("indication", "")
+        atr_value = indicators.get("atr", {}).get("value", "")
+        atr_indication = indicators.get("atr", {}).get("indication", "")
+        adx_value = indicators.get("adx", {}).get("value", "")
+        adx_indication = indicators.get("adx", {}).get("indication", "")
         
-        data.append((symbol, close_price, stoploss, target, rsi, macd, stochastic, roc, cci, 
-                      williams_r, mfi, atr, adx, ub, lb, sma20))
+        # For Bollinger Bands
+        bollinger = indicators.get("bollinger", {}).get("value", [{}])
+        ub_value = bollinger[0].get("value", "")
+        lb_value = bollinger[1].get("value", "")
+        sma20_value = bollinger[2].get("value", "")
+        
+        # Append data
+        data.append((symbol, close_price, stoploss, target, 
+                      rsi_value, rsi_indication, 
+                      macd_value, macd_indication, 
+                      stochastic_value, stochastic_indication, 
+                      roc_value, roc_indication, 
+                      cci_value, cci_indication, 
+                      williams_r_value, williams_r_indication, 
+                      mfi_value, mfi_indication, 
+                      atr_value, atr_indication, 
+                      adx_value, adx_indication, 
+                      ub_value, lb_value, sma20_value))
 
-    columns = ["Symbol", "Close Price", "Stoploss", "Target", 
-               "RSI", "MACD", "Stochastic", "ROC", "CCI", 
-               "Williamson%R", "MFI", "ATR", "ADX", "UB", "LB", "SMA20"]
+    columns = [
+        "Symbol", "Close Price", "Stoploss", "Target", 
+        "RSI Value", "RSI Indication", 
+        "MACD Value", "MACD Indication", 
+        "Stochastic Value", "Stochastic Indication", 
+        "ROC Value", "ROC Indication", 
+        "CCI Value", "CCI Indication", 
+        "Williamson%R Value", "Williamson%R Indication", 
+        "MFI Value", "MFI Indication", 
+        "ATR Value", "ATR Indication", 
+        "ADX Value", "ADX Indication", 
+        "UB Value", "LB Value", "SMA20 Value"
+    ]
     return pd.DataFrame(data, columns=columns)
 
 # Function to display stocks and provide Excel export option
