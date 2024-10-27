@@ -26,40 +26,48 @@ def analyze_and_filter_stocks(stock_data):
     for symbol, data in stock_data.items():
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
-        sma_data = data["data"]["sma"]
-        ema_data = data["data"]["ema"]
-
+        
         # Prepare pivot levels DataFrame
         pivot_levels_df = pd.DataFrame(
-            [(level["key"], float(level["pivotLevel"]["pivotPoint"]),
-              float(level["pivotLevel"]["r1"]), float(level["pivotLevel"]["s1"]))
+            [(level["key"], 
+              pd.to_numeric(level["pivotLevel"]["pivotPoint"], errors='coerce'),
+              pd.to_numeric(level["pivotLevel"]["r1"], errors='coerce'), 
+              pd.to_numeric(level["pivotLevel"]["s1"], errors='coerce'))
              for level in pivot_levels],
             columns=["Key", "Pivot Point", "R1", "S1"]
         )
 
-        # Calculate averages for Pivot Levels
-        averages = pivot_levels_df.mean().to_frame().T
-        averages["Symbol"] = symbol
+        # Drop rows with NaN values to ensure all data is numeric
+        pivot_levels_df = pivot_levels_df.dropna()
 
-        # Analyze stop loss and target
-        for level in pivot_levels:
-            key = level["key"]
-            stoploss = float(level["pivotLevel"]["s1"])
-            target = float(level["pivotLevel"]["r1"])
+        if not pivot_levels_df.empty:
+            # Calculate averages for Pivot Levels
+            averages = pivot_levels_df.mean().to_frame().T
+            averages["Symbol"] = symbol
 
-            # Calculate stop loss and target changes
-            stop_loss_change = (close_price - stoploss) / close_price * 100
-            target_change = (target - close_price) / close_price * 100
+            # Analyze stop loss and target
+            for level in pivot_levels:
+                key = level["key"]
+                stoploss = pd.to_numeric(level["pivotLevel"]["s1"], errors='coerce')
+                target = pd.to_numeric(level["pivotLevel"]["r1"], errors='coerce')
 
-            # Filtering based on term
-            if stop_loss_change >= -3 and target_change >= 5:
-                filtered_results["Short Term"].append((symbol, close_price, stoploss, target, averages))
+                # Ensure stoploss and target are valid numbers
+                if pd.isna(stoploss) or pd.isna(target):
+                    continue
 
-            if stop_loss_change >= -4 and target_change >= 10:
-                filtered_results["Medium Term"].append((symbol, close_price, stoploss, target, averages))
+                # Calculate stop loss and target changes
+                stop_loss_change = (close_price - stoploss) / close_price * 100
+                target_change = (target - close_price) / close_price * 100
 
-            if stop_loss_change >= -5 and target_change >= 15:
-                filtered_results["Long Term"].append((symbol, close_price, stoploss, target, averages))
+                # Filtering based on term
+                if stop_loss_change >= -3 and target_change >= 5:
+                    filtered_results["Short Term"].append((symbol, close_price, stoploss, target, averages))
+
+                if stop_loss_change >= -4 and target_change >= 10:
+                    filtered_results["Medium Term"].append((symbol, close_price, stoploss, target, averages))
+
+                if stop_loss_change >= -5 and target_change >= 15:
+                    filtered_results["Long Term"].append((symbol, close_price, stoploss, target, averages))
 
     # Sort and return top 20 stocks for each term
     for term in filtered_results:
