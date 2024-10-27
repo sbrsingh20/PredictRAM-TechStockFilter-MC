@@ -24,7 +24,7 @@ def filter_stocks(stock_data, term):
     for symbol, data in stock_data.items():
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
-        technical_indicators = data["data"].get("technicalIndicators", {})  # Get technical indicators
+        indicators = data["data"].get("indicators", [])  # Get technical indicators
 
         # Calculate stop loss and target prices from the pivot levels
         for level in pivot_levels:
@@ -39,7 +39,7 @@ def filter_stocks(stock_data, term):
             if (term == "Short Term" and stop_loss_change >= -3 and target_change >= 5) or \
                (term == "Medium Term" and stop_loss_change >= -4 and target_change >= 10) or \
                (term == "Long Term" and stop_loss_change >= -5 and target_change >= 15):
-                filtered_stocks.append((symbol, close_price, stoploss, target, technical_indicators))
+                filtered_stocks.append((symbol, close_price, stoploss, target, indicators))
 
     return sorted(filtered_stocks, key=lambda x: x[1], reverse=True)[:20]  # Top 20 stocks
 
@@ -55,14 +55,23 @@ long_term_stocks = filter_stocks(stock_data, "Long Term")
 # Display results
 st.title("Top Filtered Stocks Based on Technicals")
 
+def format_indicators(indicators):
+    indicator_strings = []
+    for indicator in indicators:
+        if isinstance(indicator["value"], list):  # For Bollinger Bands
+            for band in indicator["value"]:
+                indicator_strings.append(f"{band['displayName']}: {band['value']}")
+        else:
+            indicator_strings.append(f"{indicator['displayName']}: {indicator['value']} ({indicator['indication']})")
+    return "\n".join(indicator_strings)
+
 def display_stocks(stocks, term):
     if stocks:
         # Create a DataFrame for stocks
         data = []
         for stock in stocks:
             symbol, close_price, stoploss, target, indicators = stock
-            # You can adjust the indicators extraction based on your data structure
-            indicators_str = json.dumps(indicators, indent=2)  # Convert indicators to a string for display
+            indicators_str = format_indicators(indicators)  # Format indicators
             data.append((symbol, close_price, stoploss, target, indicators_str))
         
         df = pd.DataFrame(data, columns=["Symbol", "Close Price", "Stoploss", "Target", "Technical Indicators"])
