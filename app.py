@@ -24,7 +24,7 @@ def filter_stocks(stock_data, term):
     for symbol, data in stock_data.items():
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
-        indicators = data["data"].get("indicators", [])  # Get technical indicators
+        indicators = {ind["id"]: ind for ind in data["data"].get("indicators", [])}  # Get technical indicators
 
         # Calculate stop loss and target prices from the pivot levels
         for level in pivot_levels:
@@ -52,32 +52,49 @@ short_term_stocks = filter_stocks(stock_data, "Short Term")
 medium_term_stocks = filter_stocks(stock_data, "Medium Term")
 long_term_stocks = filter_stocks(stock_data, "Long Term")
 
-# Display results
-st.title("Top Filtered Stocks Based on Technicals")
+# Function to create DataFrame for display
+def create_stock_dataframe(stocks):
+    data = []
+    for stock in stocks:
+        symbol, close_price, stoploss, target, indicators = stock
+        
+        # Extract individual indicator values
+        rsi = indicators.get("rsi", {}).get("value", "")
+        macd = indicators.get("macd", {}).get("value", "")
+        stochastic = indicators.get("stochastic", {}).get("value", "")
+        roc = indicators.get("roc", {}).get("value", "")
+        cci = indicators.get("cci", {}).get("value", "")
+        williams_r = indicators.get("williamsR", {}).get("value", "")
+        mfi = indicators.get("mfi", {}).get("value", "")
+        atr = indicators.get("atr", {}).get("value", "")
+        adx = indicators.get("adx", {}).get("value", "")
+        ub = indicators.get("bollinger", {}).get("value", [{}])[0].get("value", "")
+        lb = indicators.get("bollinger", {}).get("value", [{}])[1].get("value", "")
+        sma20 = indicators.get("bollinger", {}).get("value", [{}])[2].get("value", "")
+        
+        data.append((symbol, close_price, stoploss, target, rsi, macd, stochastic, roc, cci, 
+                      williams_r, mfi, atr, adx, ub, lb, sma20))
 
-def format_indicators(indicators):
-    indicator_strings = []
-    for indicator in indicators:
-        if isinstance(indicator["value"], list):  # For Bollinger Bands
-            for band in indicator["value"]:
-                indicator_strings.append(f"{band['displayName']}: {band['value']}")
-        else:
-            indicator_strings.append(f"{indicator['displayName']}: {indicator['value']} ({indicator['indication']})")
-    return "\n".join(indicator_strings)
+    columns = ["Symbol", "Close Price", "Stoploss", "Target", 
+               "RSI", "MACD", "Stochastic", "ROC", "CCI", 
+               "Williamson%R", "MFI", "ATR", "ADX", "UB", "LB", "SMA20"]
+    return pd.DataFrame(data, columns=columns)
 
+# Function to display stocks and provide Excel export option
 def display_stocks(stocks, term):
     if stocks:
-        # Create a DataFrame for stocks
-        data = []
-        for stock in stocks:
-            symbol, close_price, stoploss, target, indicators = stock
-            indicators_str = format_indicators(indicators)  # Format indicators
-            data.append((symbol, close_price, stoploss, target, indicators_str))
-        
-        df = pd.DataFrame(data, columns=["Symbol", "Close Price", "Stoploss", "Target", "Technical Indicators"])
+        df = create_stock_dataframe(stocks)
         st.table(df)
+
+        # Provide option to download as Excel
+        excel_file = f"{term}_stocks.xlsx"
+        df.to_excel(excel_file, index=False)
+        with open(excel_file, "rb") as f:
+            st.download_button("Download Excel", f, file_name=excel_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     else:
         st.write(f"No stocks meet the criteria for {term}.")
+
+st.title("Top Filtered Stocks Based on Technicals")
 
 st.subheader("Short Term Stocks")
 display_stocks(short_term_stocks, "Short Term")
