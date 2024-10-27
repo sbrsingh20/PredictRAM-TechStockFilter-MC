@@ -96,176 +96,175 @@ market_cap_range = st.slider(
 # Filter stock data by selected market cap range
 filtered_stock_data = filter_by_market_cap(stock_data, market_cap_range)
 
-# Filter stocks for each term based on the filtered stock data
-short_term_stocks = filter_stocks(filtered_stock_data, "Short Term")
-medium_term_stocks = filter_stocks(filtered_stock_data, "Medium Term")
-long_term_stocks = filter_stocks(filtered_stock_data, "Long Term")
+# Check if any stocks were found after filtering
+if not filtered_stock_data:
+    st.write("No stocks found within the selected market cap range.")
+else:
+    # Filter stocks for each term based on the filtered stock data
+    short_term_stocks = filter_stocks(filtered_stock_data, "Short Term")
+    medium_term_stocks = filter_stocks(filtered_stock_data, "Medium Term")
+    long_term_stocks = filter_stocks(filtered_stock_data, "Long Term")
 
-# Filter bearish stocks for each term based on the filtered stock data
-short_term_bearish = filter_bearish_stocks(filtered_stock_data, "Short Term")
-medium_term_bearish = filter_bearish_stocks(filtered_stock_data, "Medium Term")
-long_term_bearish = filter_bearish_stocks(filtered_stock_data, "Long Term")
+    # Filter bearish stocks for each term based on the filtered stock data
+    short_term_bearish = filter_bearish_stocks(filtered_stock_data, "Short Term")
+    medium_term_bearish = filter_bearish_stocks(filtered_stock_data, "Medium Term")
+    long_term_bearish = filter_bearish_stocks(filtered_stock_data, "Long Term")
 
-# Function to create DataFrame for stock indicators
-def create_stock_dataframe(stocks):
-    data = []
-    for stock in stocks:
-        symbol, close_price, stoploss, target, indicators = stock
-        
-        # Extract individual indicator values, indications
-        rsi_value = indicators.get("rsi", {}).get("value", "")
-        rsi_indication = indicators.get("rsi", {}).get("indication", "")
-        macd_value = indicators.get("macd", {}).get("value", "")
-        macd_indication = indicators.get("macd", {}).get("indication", "")
-        stochastic_value = indicators.get("stochastic", {}).get("value", "")
-        stochastic_indication = indicators.get("stochastic", {}).get("indication", "")
-        roc_value = indicators.get("roc", {}).get("value", "")
-        roc_indication = indicators.get("roc", {}).get("indication", "")
-        cci_value = indicators.get("cci", {}).get("value", "")
-        cci_indication = indicators.get("cci", {}).get("indication", "")
-        williams_r_value = indicators.get("williamsR", {}).get("value", "")
-        williams_r_indication = indicators.get("williamsR", {}).get("indication", "")
-        mfi_value = indicators.get("mfi", {}).get("value", "")
-        mfi_indication = indicators.get("mfi", {}).get("indication", "")
-        atr_value = indicators.get("atr", {}).get("value", "")
-        atr_indication = indicators.get("atr", {}).get("indication", "")
-        adx_value = indicators.get("adx", {}).get("value", "")
-        adx_indication = indicators.get("adx", {}).get("indication", "")
-        
-        # For Bollinger Bands
-        bollinger = indicators.get("bollinger", {}).get("value", [{}])
-        ub_value = bollinger[0].get("value", "")
-        lb_value = bollinger[1].get("value", "")
-        sma20_value = bollinger[2].get("value", "")
-        
-        # Append data
-        data.append((symbol, close_price, stoploss, target, 
-                      rsi_value, rsi_indication, 
-                      macd_value, macd_indication, 
-                      stochastic_value, stochastic_indication, 
-                      roc_value, roc_indication, 
-                      cci_value, cci_indication, 
-                      williams_r_value, williams_r_indication, 
-                      mfi_value, mfi_indication, 
-                      atr_value, atr_indication, 
-                      adx_value, adx_indication, 
-                      ub_value, lb_value, sma20_value))
+    # Function to create DataFrame for stock indicators
+    def create_stock_dataframe(stocks):
+        data = []
+        for stock in stocks:
+            symbol, close_price, stoploss, target, indicators = stock
+            
+            # Extract individual indicator values, indications
+            rsi_value = indicators.get("rsi", {}).get("value", "")
+            rsi_indication = indicators.get("rsi", {}).get("indication", "")
+            macd_value = indicators.get("macd", {}).get("value", "")
+            macd_indication = indicators.get("macd", {}).get("indication", "")
+            stochastic_value = indicators.get("stochastic", {}).get("value", "")
+            stochastic_indication = indicators.get("stochastic", {}).get("indication", "")
+            roc_value = indicators.get("roc", {}).get("value", "")
+            roc_indication = indicators.get("roc", {}).get("indication", "")
+            cci_value = indicators.get("cci", {}).get("value", "")
+            cci_indication = indicators.get("cci", {}).get("indication", "")
+            williams_r_value = indicators.get("williamsR", {}).get("value", "")
+            williams_r_indication = indicators.get("williamsR", {}).get("indication", "")
+            mfi_value = indicators.get("mfi", {}).get("value", "")
+            mfi_indication = indicators.get("mfi", {}).get("indication", "")
+            atr_value = indicators.get("atr", {}).get("value", "")
+            atr_indication = indicators.get("atr", {}).get("indication", "")
+            adx_value = indicators.get("adx", {}).get("value", "")
+            adx_indication = indicators.get("adx", {}).get("indication", "")
+            
+            # For Bollinger Bands
+            bollinger = indicators.get("bollinger", {}).get("value", [{}])
+            ub_value = bollinger[0].get("value", "")
+            lb_value = bollinger[1].get("value", "")
+            sma20_value = bollinger[2].get("value", "")
+            
+            # Append data
+            data.append((symbol, close_price, stoploss, target, 
+                          rsi_value, rsi_indication, 
+                          macd_value, macd_indication, 
+                          stochastic_value, stochastic_indication, 
+                          roc_value, roc_indication, 
+                          cci_value, cci_indication, 
+                          williams_r_value, williams_r_indication, 
+                          mfi_value, mfi_indication, 
+                          atr_value, atr_indication, 
+                          adx_value, adx_indication, 
+                          ub_value, lb_value, sma20_value))
 
-    columns = [
-        "Symbol", "Close Price", "Stoploss", "Target", 
-        "RSI Value", "RSI Indication", 
-        "MACD Value", "MACD Indication", 
-        "Stochastic Value", "Stochastic Indication", 
-        "ROC Value", "ROC Indication", 
-        "CCI Value", "CCI Indication", 
-        "Williamson%R Value", "Williamson%R Indication", 
-        "MFI Value", "MFI Indication", 
-        "ATR Value", "ATR Indication", 
-        "ADX Value", "ADX Indication", 
-        "UB Value", "LB Value", "SMA20 Value"
-    ]
-    return pd.DataFrame(data, columns=columns)
+        columns = [
+            "Symbol", "Close Price", "Stoploss", "Target", 
+            "RSI Value", "RSI Indication", 
+            "MACD Value", "MACD Indication", 
+            "Stochastic Value", "Stochastic Indication", 
+            "ROC Value", "ROC Indication", 
+            "CCI Value", "CCI Indication", 
+            "Williamson%R Value", "Williamson%R Indication", 
+            "MFI Value", "MFI Indication", 
+            "ATR Value", "ATR Indication", 
+            "ADX Value", "ADX Indication", 
+            "UB Value", "LB Value", "SMA20 Value"
+        ]
+        return pd.DataFrame(data, columns=columns)
 
-# Function to create DataFrame for bearish stocks with indicators
-def create_bearish_stock_dataframe(stocks):
-    data = []
-    for stock in stocks:
-        symbol, bearish_count, total_bearish, indicators = stock
-        
-        # Extract individual indicator values, indications
-        rsi_value = indicators.get("rsi", {}).get("value", "")
-        rsi_indication = indicators.get("rsi", {}).get("indication", "")
-        macd_value = indicators.get("macd", {}).get("value", "")
-        macd_indication = indicators.get("macd", {}).get("indication", "")
-        stochastic_value = indicators.get("stochastic", {}).get("value", "")
-        stochastic_indication = indicators.get("stochastic", {}).get("indication", "")
-        roc_value = indicators.get("roc", {}).get("value", "")
-        roc_indication = indicators.get("roc", {}).get("indication", "")
-        cci_value = indicators.get("cci", {}).get("value", "")
-        cci_indication = indicators.get("cci", {}).get("indication", "")
-        williams_r_value = indicators.get("williamsR", {}).get("value", "")
-        williams_r_indication = indicators.get("williamsR", {}).get("indication", "")
-        mfi_value = indicators.get("mfi", {}).get("value", "")
-        mfi_indication = indicators.get("mfi", {}).get("indication", "")
-        atr_value = indicators.get("atr", {}).get("value", "")
-        atr_indication = indicators.get("atr", {}).get("indication", "")
-        adx_value = indicators.get("adx", {}).get("value", "")
-        adx_indication = indicators.get("adx", {}).get("indication", "")
-        
-        # For Bollinger Bands
-        bollinger = indicators.get("bollinger", {}).get("value", [{}])
-        ub_value = bollinger[0].get("value", "")
-        lb_value = bollinger[1].get("value", "")
-        sma20_value = bollinger[2].get("value", "")
-        
-        # Append data
-        data.append((symbol, bearish_count, total_bearish, 
-                      rsi_value, rsi_indication, 
-                      macd_value, macd_indication, 
-                      stochastic_value, stochastic_indication, 
-                      roc_value, roc_indication, 
-                      cci_value, cci_indication, 
-                      williams_r_value, williams_r_indication, 
-                      mfi_value, mfi_indication, 
-                      atr_value, atr_indication, 
-                      adx_value, adx_indication, 
-                      ub_value, lb_value, sma20_value))
+    # Function to create DataFrame for bearish stocks with indicators
+    def create_bearish_stock_dataframe(stocks):
+        data = []
+        for stock in stocks:
+            symbol, bearish_count, total_bearish, indicators = stock
+            
+            rsi_value = indicators.get("rsi", {}).get("value", "")
+            rsi_indication = indicators.get("rsi", {}).get("indication", "")
+            macd_value = indicators.get("macd", {}).get("value", "")
+            macd_indication = indicators.get("macd", {}).get("indication", "")
+            stochastic_value = indicators.get("stochastic", {}).get("value", "")
+            stochastic_indication = indicators.get("stochastic", {}).get("indication", "")
+            roc_value = indicators.get("roc", {}).get("value", "")
+            roc_indication = indicators.get("roc", {}).get("indication", "")
+            cci_value = indicators.get("cci", {}).get("value", "")
+            cci_indication = indicators.get("cci", {}).get("indication", "")
+            williams_r_value = indicators.get("williamsR", {}).get("value", "")
+            williams_r_indication = indicators.get("williamsR", {}).get("indication", "")
+            mfi_value = indicators.get("mfi", {}).get("value", "")
+            mfi_indication = indicators.get("mfi", {}).get("indication", "")
+            atr_value = indicators.get("atr", {}).get("value", "")
+            atr_indication = indicators.get("atr", {}).get("indication", "")
+            adx_value = indicators.get("adx", {}).get("value", "")
+            adx_indication = indicators.get("adx", {}).get("indication", "")
+            
+            # For Bollinger Bands
+            bollinger = indicators.get("bollinger", {}).get("value", [{}])
+            ub_value = bollinger[0].get("value", "")
+            lb_value = bollinger[1].get("value", "")
+            sma20_value = bollinger[2].get("value", "")
+            
+            # Append data
+            data.append((symbol, bearish_count, total_bearish, 
+                          rsi_value, rsi_indication, 
+                          macd_value, macd_indication, 
+                          stochastic_value, stochastic_indication, 
+                          roc_value, roc_indication, 
+                          cci_value, cci_indication, 
+                          williams_r_value, williams_r_indication, 
+                          mfi_value, mfi_indication, 
+                          atr_value, atr_indication, 
+                          adx_value, adx_indication, 
+                          ub_value, lb_value, sma20_value))
 
-    columns = [
-        "Symbol", "Bearish Count", "Total Bearish", 
-        "RSI Value", "RSI Indication", 
-        "MACD Value", "MACD Indication", 
-        "Stochastic Value", "Stochastic Indication", 
-        "ROC Value", "ROC Indication", 
-        "CCI Value", "CCI Indication", 
-        "Williamson%R Value", "Williamson%R Indication", 
-        "MFI Value", "MFI Indication", 
-        "ATR Value", "ATR Indication", 
-        "ADX Value", "ADX Indication", 
-        "UB Value", "LB Value", "SMA20 Value"
-    ]
-    return pd.DataFrame(data, columns=columns)
+        columns = [
+            "Symbol", "Bearish Count", "Total Bearish", 
+            "RSI Value", "RSI Indication", 
+            "MACD Value", "MACD Indication", 
+            "Stochastic Value", "Stochastic Indication", 
+            "ROC Value", "ROC Indication", 
+            "CCI Value", "CCI Indication", 
+            "Williamson%R Value", "Williamson%R Indication", 
+            "MFI Value", "MFI Indication", 
+            "ATR Value", "ATR Indication", 
+            "ADX Value", "ADX Indication", 
+            "UB Value", "LB Value", "SMA20 Value"
+        ]
+        return pd.DataFrame(data, columns=columns)
 
-# Function to display stocks and provide Excel export option
-def display_stocks(stocks, term):
-    if stocks:
-        df = create_stock_dataframe(stocks)
-        st.table(df)
+    # Display results
+    st.title("Top Filtered Stocks Based on Technicals")
 
-        # Provide option to download as Excel
-        excel_file = f"{term}_stocks.xlsx"
-        df.to_excel(excel_file, index=False)
-        with open(excel_file, "rb") as f:
-            st.download_button("Download Excel", f, file_name=excel_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    st.subheader("Short Term Stocks")
+    if short_term_stocks:
+        st.table(create_stock_dataframe(short_term_stocks))
     else:
-        st.write(f"No stocks meet the criteria for {term}.")
+        st.write("No stocks meet the criteria for Short Term.")
 
-# Function to display bearish stocks
-def display_bearish_stocks(bearish_stocks, term):
-    if bearish_stocks:
-        df = create_bearish_stock_dataframe(bearish_stocks)
-        st.table(df)
+    st.subheader("Medium Term Stocks")
+    if medium_term_stocks:
+        st.table(create_stock_dataframe(medium_term_stocks))
     else:
-        st.write(f"No bearish stocks meet the criteria for {term}.")
+        st.write("No stocks meet the criteria for Medium Term.")
 
-st.title("Top Filtered Stocks Based on Technicals")
+    st.subheader("Long Term Stocks")
+    if long_term_stocks:
+        st.table(create_stock_dataframe(long_term_stocks))
+    else:
+        st.write("No stocks meet the criteria for Long Term.")
 
-# Display filtered stocks
-st.subheader("Short Term Stocks")
-display_stocks(short_term_stocks, "Short Term")
+    # Display bearish stocks
+    st.subheader("Bearish Short Term Stocks")
+    if short_term_bearish:
+        st.table(create_bearish_stock_dataframe(short_term_bearish))
+    else:
+        st.write("No bearish stocks meet the criteria for Short Term.")
 
-st.subheader("Medium Term Stocks")
-display_stocks(medium_term_stocks, "Medium Term")
+    st.subheader("Bearish Medium Term Stocks")
+    if medium_term_bearish:
+        st.table(create_bearish_stock_dataframe(medium_term_bearish))
+    else:
+        st.write("No bearish stocks meet the criteria for Medium Term.")
 
-st.subheader("Long Term Stocks")
-display_stocks(long_term_stocks, "Long Term")
-
-# Display bearish stocks
-st.subheader("Bearish Short Term Stocks")
-display_bearish_stocks(short_term_bearish, "Short Term")
-
-st.subheader("Bearish Medium Term Stocks")
-display_bearish_stocks(medium_term_bearish, "Medium Term")
-
-st.subheader("Bearish Long Term Stocks")
-display_bearish_stocks(long_term_bearish, "Long Term")
+    st.subheader("Bearish Long Term Stocks")
+    if long_term_bearish:
+        st.table(create_bearish_stock_dataframe(long_term_bearish))
+    else:
+        st.write("No bearish stocks meet the criteria for Long Term.")
