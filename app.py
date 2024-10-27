@@ -43,6 +43,23 @@ def filter_stocks(stock_data, term):
 
     return sorted(filtered_stocks, key=lambda x: x[1], reverse=True)[:20]  # Top 20 stocks
 
+# Function to filter bearish stocks based on sentiment
+def filter_bearish_stocks(stock_data, term):
+    bearish_stocks = []
+    
+    for symbol, data in stock_data.items():
+        sentiments = data["data"].get("sentiments", {})
+        bearish_count = sentiments.get("movingAverageSentiment", {}).get("bearishCount", 0)
+        total_bearish = sentiments.get("totalBearish", 0)
+
+        # Check conditions based on term
+        if (term == "Short Term" and bearish_count > 0) or \
+           (term == "Medium Term" and bearish_count > 1) or \
+           (term == "Long Term" and total_bearish > 2):
+            bearish_stocks.append((symbol, bearish_count, total_bearish))
+
+    return sorted(bearish_stocks, key=lambda x: (x[1], x[2]), reverse=True)[:20]  # Top 20 bearish stocks
+
 # Load stock data from the specified folder
 data_folder = "data"  # Adjust this path if needed
 stock_data = load_all_stock_data(data_folder)
@@ -52,7 +69,12 @@ short_term_stocks = filter_stocks(stock_data, "Short Term")
 medium_term_stocks = filter_stocks(stock_data, "Medium Term")
 long_term_stocks = filter_stocks(stock_data, "Long Term")
 
-# Function to create DataFrame for display
+# Filter bearish stocks for each term
+short_term_bearish = filter_bearish_stocks(stock_data, "Short Term")
+medium_term_bearish = filter_bearish_stocks(stock_data, "Medium Term")
+long_term_bearish = filter_bearish_stocks(stock_data, "Long Term")
+
+# Function to create DataFrame for stock indicators
 def create_stock_dataframe(stocks):
     data = []
     for stock in stocks:
@@ -126,8 +148,17 @@ def display_stocks(stocks, term):
     else:
         st.write(f"No stocks meet the criteria for {term}.")
 
+# Function to display bearish stocks
+def display_bearish_stocks(bearish_stocks, term):
+    if bearish_stocks:
+        df = pd.DataFrame(bearish_stocks, columns=["Symbol", "Bearish Count", "Total Bearish"])
+        st.table(df)
+    else:
+        st.write(f"No bearish stocks meet the criteria for {term}.")
+
 st.title("Top Filtered Stocks Based on Technicals")
 
+# Display filtered stocks
 st.subheader("Short Term Stocks")
 display_stocks(short_term_stocks, "Short Term")
 
@@ -136,3 +167,13 @@ display_stocks(medium_term_stocks, "Medium Term")
 
 st.subheader("Long Term Stocks")
 display_stocks(long_term_stocks, "Long Term")
+
+# Display bearish stocks
+st.subheader("Bearish Short Term Stocks")
+display_bearish_stocks(short_term_bearish, "Short Term")
+
+st.subheader("Bearish Medium Term Stocks")
+display_bearish_stocks(medium_term_bearish, "Medium Term")
+
+st.subheader("Bearish Long Term Stocks")
+display_bearish_stocks(long_term_bearish, "Long Term")
