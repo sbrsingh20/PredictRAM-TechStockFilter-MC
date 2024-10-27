@@ -1,21 +1,86 @@
-import streamlit as st
 import pandas as pd
 import json
-import os
 
-# Function to load JSON data for multiple symbols
-def load_all_stock_data(symbols):
-    stock_data = {}
-    for symbol in symbols:
-        try:
-            file_path = f"data/{symbol}_data.json"
-            with open(file_path, "r") as file:
-                stock_data[symbol] = json.load(file)
-        except FileNotFoundError:
-            continue  # Skip if file is not found
-    return stock_data
+# Sample JSON data (replace this with your actual data loading logic)
+stock_data_json = '''
+{
+    "ABB": {
+        "code": "200",
+        "message": "Success",
+        "data": {
+            "open": 4105.5,
+            "high": 4180.0,
+            "low": 4078.05,
+            "close": 4167.5,
+            "pclose": 4008.5,
+            "volume": 183988,
+            "reqDate": "2023-11",
+            "feedTime": "1699026834",
+            "scId": "ABB",
+            "exchangeId": "N",
+            "pivotLevels": [
+                {
+                    "key": "Classic",
+                    "pivotLevel": {
+                        "pivotPoint": "4287.98",
+                        "r1": "4488.27",
+                        "r2": "4878.28",
+                        "r3": "5078.57",
+                        "s1": "3897.97",
+                        "s2": "3697.68",
+                        "s3": "3307.67"
+                    }
+                },
+                {
+                    "key": "Fibonacci",
+                    "pivotLevel": {
+                        "pivotPoint": "4287.98",
+                        "r1": "4513.48",
+                        "r2": "4652.79",
+                        "r3": "4878.28",
+                        "s1": "4062.49",
+                        "s2": "3923.18",
+                        "s3": "3697.68"
+                    }
+                },
+                {
+                    "key": "Camarilla",
+                    "pivotLevel": {
+                        "pivotPoint": "4287.98",
+                        "r1": "4152.36",
+                        "r2": "4206.47",
+                        "r3": "4260.58",
+                        "s1": "4044.14",
+                        "s2": "3990.03",
+                        "s3": "3935.92"
+                    }
+                }
+            ],
+            "sma": [
+                {"key": "5", "value": "4241.72", "indication": "Bearish"},
+                {"key": "10", "value": "3975.80", "indication": "Bullish"},
+                {"key": "20", "value": "3362.14", "indication": "Bullish"}
+            ],
+            "ema": [
+                {"key": "5", "value": "4122.22", "indication": "Bullish"},
+                {"key": "10", "value": "3918.03", "indication": "Bullish"}
+            ],
+            "crossover": [
+                {"key": "5_20", "indication": "Bullish", "period": "Short Term"},
+                {"key": "20_50", "indication": "Bullish", "period": "Medium Term"}
+            ],
+            "indicators": [
+                {"id": "rsi", "value": "68.79", "indication": "Bullish"},
+                {"id": "macd", "value": "597.41", "indication": "Bullish"}
+            ]
+        }
+    }
+}
+'''
 
-# Function to analyze stock data and filter based on criteria
+# Load stock data from JSON
+stock_data = json.loads(stock_data_json)
+
 def analyze_and_filter_stocks(stock_data):
     filtered_results = {
         "Short Term": [],
@@ -26,19 +91,19 @@ def analyze_and_filter_stocks(stock_data):
     for symbol, data in stock_data.items():
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
-        sma_data = data["data"]["sma"]
-        ema_data = data["data"]["ema"]
 
         # Prepare pivot levels DataFrame
         pivot_levels_df = pd.DataFrame(
-            [(level["key"], float(level["pivotLevel"]["pivotPoint"]),
-              float(level["pivotLevel"]["r1"]), float(level["pivotLevel"]["s1"]))
+            [(level["key"], 
+              float(level["pivotLevel"]["pivotPoint"]),
+              float(level["pivotLevel"]["r1"]),
+              float(level["pivotLevel"]["s1"]))
              for level in pivot_levels],
             columns=["Key", "Pivot Point", "R1", "S1"]
         )
 
         # Calculate averages for Pivot Levels
-        averages = pivot_levels_df.mean().to_frame().T
+        averages = pivot_levels_df.mean(numeric_only=True).to_frame().T
         averages["Symbol"] = symbol
 
         # Analyze stop loss and target
@@ -67,61 +132,13 @@ def analyze_and_filter_stocks(stock_data):
 
     return filtered_results
 
-# Input for stock symbols to search
-stock_symbols_input = st.text_input("Enter stock symbols separated by commas (e.g., ABB, GOOGL):")
-stock_symbols = [s.strip() for s in stock_symbols_input.split(',')] if stock_symbols_input else []
+# Run the analysis
+filtered_stocks = analyze_and_filter_stocks(stock_data)
 
-if stock_symbols:
-    stock_data = load_all_stock_data(stock_symbols)
-    
-    # Analyze and filter stocks
-    filtered_stocks = analyze_and_filter_stocks(stock_data)
+# Output results
+for term, stocks in filtered_stocks.items():
+    print(f"\n{term} Stocks:")
+    for stock in stocks:
+        symbol, close_price, stoploss, target, averages = stock
+        print(f"Symbol: {symbol}, Close Price: {close_price}, Stop Loss: {stoploss}, Target: {target}, Averages: {averages.values.tolist()}")
 
-    # Display results
-    st.title("Filtered Stocks Analysis")
-
-    for term in ["Short Term", "Medium Term", "Long Term"]:
-        st.subheader(f"{term} Stocks")
-        if filtered_stocks[term]:
-            results_df = pd.DataFrame(filtered_stocks[term], columns=["Symbol", "Close Price", "Stoploss", "Target", "Averages"])
-            st.table(results_df[["Symbol", "Close Price", "Stoploss", "Target"]])  # Display top stocks
-
-            # Display Pivot Levels and Averages for each stock
-            for idx, row in results_df.iterrows():
-                symbol = row["Symbol"]
-                averages = row["Averages"]
-
-                st.write(f"**Pivot Levels and Averages for {symbol}**")
-                st.table(averages)
-
-                # Display SMA and EMA data
-                sma_df = pd.DataFrame(stock_data[symbol]["data"]["sma"])
-                ema_df = pd.DataFrame(stock_data[symbol]["data"]["ema"])
-                
-                st.write("**Simple Moving Averages (SMA)**")
-                st.table(sma_df)
-
-                st.write("**Exponential Moving Averages (EMA)**")
-                st.table(ema_df)
-
-                # Display Moving Average Crossovers
-                crossover_df = pd.DataFrame(stock_data[symbol]["data"]["crossover"])
-                st.write("**Moving Average Crossovers**")
-                st.table(crossover_df)
-
-                # Display Technical Indicators
-                indicators_df = pd.DataFrame(stock_data[symbol]["data"]["indicators"])
-                st.write("**Technical Indicators**")
-                st.table(indicators_df)
-
-                # Stoploss and Target table for each stock
-                stoploss_target_df = pd.DataFrame({
-                    "Key": [row["Symbol"]],
-                    "Stoploss": [row["Stoploss"]],
-                    "Target": [row["Target"]]
-                })
-                st.write(f"**Stoploss and Target for {symbol}**")
-                st.table(stoploss_target_df)
-
-        else:
-            st.write(f"No stocks meet the criteria for {term}.")
