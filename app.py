@@ -39,6 +39,7 @@ def filter_stocks(stock_data, term):
         close_price = data["data"]["close"]  # Get the closing price
         pivot_levels = data["data"]["pivotLevels"]
         indicators = {ind["id"]: ind for ind in data["data"].get("indicators", [])}  # Get technical indicators
+        market_cap = market_cap_dict.get(symbol, 0)  # Get market cap
 
         # Calculate stop loss and target prices from the pivot levels
         for level in pivot_levels:
@@ -53,7 +54,7 @@ def filter_stocks(stock_data, term):
             if (term == "Short Term" and stop_loss_change >= -3 and target_change >= 5) or \
                (term == "Medium Term" and stop_loss_change >= -4 and target_change >= 10) or \
                (term == "Long Term" and stop_loss_change >= -5 and target_change >= 15):
-                filtered_stocks.append((symbol, close_price, stoploss, target, indicators))
+                filtered_stocks.append((symbol, close_price, stoploss, target, market_cap, indicators))
 
     return sorted(filtered_stocks, key=lambda x: x[1], reverse=True)[:20]  # Top 20 stocks
 
@@ -65,13 +66,14 @@ def filter_bearish_stocks(stock_data, term):
         sentiments = data["data"].get("sentiments", {})
         bearish_count = sentiments.get("movingAverageSentiment", {}).get("bearishCount", 0)
         total_bearish = sentiments.get("totalBearish", 0)
+        market_cap = market_cap_dict.get(symbol, 0)  # Get market cap
         indicators = {ind["id"]: ind for ind in data["data"].get("indicators", [])}  # Get technical indicators
 
         # Check conditions based on term
         if (term == "Short Term" and bearish_count > 0) or \
            (term == "Medium Term" and bearish_count > 1) or \
            (term == "Long Term" and total_bearish > 2):
-            bearish_stocks.append((symbol, bearish_count, total_bearish, indicators))
+            bearish_stocks.append((symbol, bearish_count, total_bearish, market_cap, indicators))
 
     return sorted(bearish_stocks, key=lambda x: (x[1], x[2]), reverse=True)[:20]  # Top 20 bearish stocks
 
@@ -114,7 +116,7 @@ else:
     def create_stock_dataframe(stocks):
         data = []
         for stock in stocks:
-            symbol, close_price, stoploss, target, indicators = stock
+            symbol, close_price, stoploss, target, market_cap, indicators = stock
             
             # Extract individual indicator values, indications
             rsi_value = indicators.get("rsi", {}).get("value", "")
@@ -143,7 +145,7 @@ else:
             sma20_value = bollinger[2].get("value", "")
             
             # Append data
-            data.append((symbol, close_price, stoploss, target, 
+            data.append((symbol, close_price, stoploss, target, market_cap,
                           rsi_value, rsi_indication, 
                           macd_value, macd_indication, 
                           stochastic_value, stochastic_indication, 
@@ -156,7 +158,7 @@ else:
                           ub_value, lb_value, sma20_value))
 
         columns = [
-            "Symbol", "Close Price", "Stoploss", "Target", 
+            "Symbol", "Close Price", "Stoploss", "Target", "Market Cap", 
             "RSI Value", "RSI Indication", 
             "MACD Value", "MACD Indication", 
             "Stochastic Value", "Stochastic Indication", 
@@ -174,7 +176,7 @@ else:
     def create_bearish_stock_dataframe(stocks):
         data = []
         for stock in stocks:
-            symbol, bearish_count, total_bearish, indicators = stock
+            symbol, bearish_count, total_bearish, market_cap, indicators = stock
             
             rsi_value = indicators.get("rsi", {}).get("value", "")
             rsi_indication = indicators.get("rsi", {}).get("indication", "")
@@ -202,7 +204,7 @@ else:
             sma20_value = bollinger[2].get("value", "")
             
             # Append data
-            data.append((symbol, bearish_count, total_bearish, 
+            data.append((symbol, bearish_count, total_bearish, market_cap, 
                           rsi_value, rsi_indication, 
                           macd_value, macd_indication, 
                           stochastic_value, stochastic_indication, 
@@ -215,7 +217,7 @@ else:
                           ub_value, lb_value, sma20_value))
 
         columns = [
-            "Symbol", "Bearish Count", "Total Bearish", 
+            "Symbol", "Bearish Count", "Total Bearish", "Market Cap", 
             "RSI Value", "RSI Indication", 
             "MACD Value", "MACD Indication", 
             "Stochastic Value", "Stochastic Indication", 
