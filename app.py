@@ -22,41 +22,44 @@ def filter_stocks(stock_data, term):
     filtered_stocks = []
 
     for symbol, data in stock_data.items():
-        # Ensure the indicators key exists and is a list
+        # Check if the necessary keys exist
         if "data" in data and "indicators" in data["data"]:
-            indicators = {indicator["id"]: float(indicator["value"]) for indicator in data["data"]["indicators"] if "value" in indicator}
-            
-            # Extract indicator values with default of 0 if they do not exist
-            rsi = indicators.get("rsi", 0)
-            macd = indicators.get("macd", 0)
-            stochastic = indicators.get("stochastic", 0)
-            roc = indicators.get("roc", 0)
-            cci = indicators.get("cci", 0)
+            try:
+                indicators = {indicator["id"]: float(indicator["value"]) for indicator in data["data"]["indicators"]}
 
-            # Apply filtering based on term conditions
-            if term == "Short Term":
-                if (rsi > 50 and 55 <= rsi <= 70 and
-                    macd > 0 and
-                    stochastic > 20 and 50 <= stochastic <= 80 and
-                    roc > 0 and
-                    cci > 100):
-                    filtered_stocks.append(symbol)
+                # Extract indicator values with a default of 0 if they do not exist
+                rsi = indicators.get("rsi", 0)
+                macd = indicators.get("macd", 0)
+                stochastic = indicators.get("stochastic", 0)
+                roc = indicators.get("roc", 0)
+                cci = indicators.get("cci", 0)
 
-            elif term == "Medium Term":
-                if (50 < rsi <= 70 and
-                    macd > 0 and
-                    stochastic > 20 and stochastic <= 80 and
-                    roc > 0 and
-                    cci > 100):
-                    filtered_stocks.append(symbol)
+                # Apply filtering based on term conditions
+                if term == "Short Term":
+                    if (rsi > 50 and 55 <= rsi <= 70 and
+                        macd > 0 and
+                        stochastic > 20 and 50 <= stochastic <= 80 and
+                        roc > 0 and
+                        cci > 100):
+                        filtered_stocks.append(symbol)
 
-            elif term == "Long Term":
-                if (rsi > 50 and 60 <= rsi <= 70 and
-                    macd > 0 and
-                    stochastic > 20 and 40 <= stochastic <= 70 and
-                    roc > 0 and
-                    cci > 100):
-                    filtered_stocks.append(symbol)
+                elif term == "Medium Term":
+                    if (50 < rsi <= 70 and
+                        macd > 0 and
+                        stochastic > 20 and stochastic <= 80 and
+                        roc > 0 and
+                        cci > 100):
+                        filtered_stocks.append(symbol)
+
+                elif term == "Long Term":
+                    if (rsi > 50 and 60 <= rsi <= 70 and
+                        macd > 0 and
+                        stochastic > 20 and 40 <= stochastic <= 70 and
+                        roc > 0 and
+                        cci > 100):
+                        filtered_stocks.append(symbol)
+            except (ValueError, KeyError) as e:
+                st.warning(f"Data issue for {symbol}: {e}")
 
     return filtered_stocks[:20]  # Return top 20 stocks
 
