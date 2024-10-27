@@ -25,41 +25,51 @@ def filter_stocks(stock_data, term):
         # Check if the necessary keys exist
         if "data" in data and "indicators" in data["data"]:
             try:
-                indicators = {indicator["id"]: float(indicator["value"]) for indicator in data["data"]["indicators"]}
+                # Check that indicators is a list and contains valid entries
+                if isinstance(data["data"]["indicators"], list):
+                    indicators = {}
+                    for indicator in data["data"]["indicators"]:
+                        if "id" in indicator and "value" in indicator:
+                            try:
+                                indicators[indicator["id"]] = float(indicator["value"])
+                            except (ValueError, TypeError):
+                                st.warning(f"Invalid value for {indicator['id']} in {symbol}: {indicator['value']}")
 
-                # Extract indicator values with a default of 0 if they do not exist
-                rsi = indicators.get("rsi", 0)
-                macd = indicators.get("macd", 0)
-                stochastic = indicators.get("stochastic", 0)
-                roc = indicators.get("roc", 0)
-                cci = indicators.get("cci", 0)
+                    # Extract indicator values with default of 0 if they do not exist
+                    rsi = indicators.get("rsi", 0)
+                    macd = indicators.get("macd", 0)
+                    stochastic = indicators.get("stochastic", 0)
+                    roc = indicators.get("roc", 0)
+                    cci = indicators.get("cci", 0)
 
-                # Apply filtering based on term conditions
-                if term == "Short Term":
-                    if (rsi > 50 and 55 <= rsi <= 70 and
-                        macd > 0 and
-                        stochastic > 20 and 50 <= stochastic <= 80 and
-                        roc > 0 and
-                        cci > 100):
-                        filtered_stocks.append(symbol)
+                    # Apply filtering based on term conditions
+                    if term == "Short Term":
+                        if (rsi > 50 and 55 <= rsi <= 70 and
+                            macd > 0 and
+                            stochastic > 20 and 50 <= stochastic <= 80 and
+                            roc > 0 and
+                            cci > 100):
+                            filtered_stocks.append(symbol)
 
-                elif term == "Medium Term":
-                    if (50 < rsi <= 70 and
-                        macd > 0 and
-                        stochastic > 20 and stochastic <= 80 and
-                        roc > 0 and
-                        cci > 100):
-                        filtered_stocks.append(symbol)
+                    elif term == "Medium Term":
+                        if (50 < rsi <= 70 and
+                            macd > 0 and
+                            stochastic > 20 and stochastic <= 80 and
+                            roc > 0 and
+                            cci > 100):
+                            filtered_stocks.append(symbol)
 
-                elif term == "Long Term":
-                    if (rsi > 50 and 60 <= rsi <= 70 and
-                        macd > 0 and
-                        stochastic > 20 and 40 <= stochastic <= 70 and
-                        roc > 0 and
-                        cci > 100):
-                        filtered_stocks.append(symbol)
-            except (ValueError, KeyError) as e:
-                st.warning(f"Data issue for {symbol}: {e}")
+                    elif term == "Long Term":
+                        if (rsi > 50 and 60 <= rsi <= 70 and
+                            macd > 0 and
+                            stochastic > 20 and 40 <= stochastic <= 70 and
+                            roc > 0 and
+                            cci > 100):
+                            filtered_stocks.append(symbol)
+                else:
+                    st.warning(f"Indicators data is not a list for {symbol}: {data['data']['indicators']}")
+            except Exception as e:
+                st.warning(f"Data processing error for {symbol}: {e}")
 
     return filtered_stocks[:20]  # Return top 20 stocks
 
